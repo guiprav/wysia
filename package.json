@@ -4,6 +4,12 @@
   "homepage": "https://github.com/n2liquid/wysia",
   "author": "Guilherme Vieira <super.driver.512@gmail.com>",
   "description": "What you see is awesome: HTML template + mock data viewer.",
+  "bin": {
+    "wysia": "./bin/wysia-viewer.js"
+  },
+  "scripts": {
+    "start": "forever -w ./bin/wysia-viewer.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/n2liquid/wysia.git"
@@ -11,5 +17,9 @@
   "license": "GPLv3",
   "engines": {
     "node": ">=0.10"
+  },
+  "dependencies": {
+    "handlebars": "~1.1.2",
+    "express": "~3.4.4"
   }
 }
