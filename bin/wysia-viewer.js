@@ -7,16 +7,7 @@ var hbs = require('handlebars');
 var app = express();
 
 app.use(express.logger());
-app.use(express.static(__dirname + '/../static'));
-
-app.get
-(
-	'/favicon.ico', function (req, res)
-	{
-		res.status(404);
-		res.end();
-	}
-);
+app.use(express.static(process.cwd()));
 
 app.get
 (
