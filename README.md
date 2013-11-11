@@ -1,7 +1,9 @@
 Wysia
 =====
 
-Wysia ("What you see is awesome!") is an HTML template + mock data viewer.
+Wysia ("What you see is awesome!") is an HTML template + mock data viewer. It is meant to showcase web designs with the least amount of duplication by using the same templates used in the final web site or application.
+
+It can also be used together with PhantomJS in order to comprehensively unit test your web site's appearance -- taking photos of elements and comparing them to saved ones -- and maybe client-side behavior if you mock the web API.
 
 It will start a server that serves all Handlebars templates in the current directory backed by the specified JSON files.
 
