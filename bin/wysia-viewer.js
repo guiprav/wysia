@@ -3,6 +3,32 @@ var fs = require('fs');
 var http = require('http');
 var express = require('express');
 var hbs = require('handlebars');
+var marked = require('marked');
+
+hbs.registerHelper
+(
+	'markdown', function (text)
+	{
+		if (!text)
+		{
+			return '';
+		}
+
+		return new hbs.SafeString
+		(
+			marked
+			(
+				text,
+				{
+					gfm: true,
+					sanitize: true,
+					breaks: true,
+					tables: true
+				}
+			)
+		);
+	}
+);
 
 var app = express();
 
