@@ -128,5 +128,5 @@ function handler (req, res)
 	}
 }
 
-http.createServer(app).listen(4000);
+http.createServer(app).listen(process.env.PORT || 4000);
 
