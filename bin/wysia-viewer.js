@@ -55,13 +55,13 @@ function handler (req, res)
 		req.params.models = [];
 	}
 
-	var outer_template;
+	var shell_template;
 
 	fs.readFile
 	(
-		'outer.hbs', 'utf8', function (err, template)
+		'shell.hbs', 'utf8', function (err, template)
 		{
-			outer_template = template;
+			shell_template = template;
 			fs.readFile(req.params.template + '.hbs', 'utf8', template_loaded);
 		}
 	);
@@ -117,10 +117,10 @@ function handler (req, res)
 		{
 			var template_html = hbs.compile(template)(final_model);
 
-			if (outer_template)
+			if (shell_template)
 			{
-				final_model['page-body'] = template_html;
-				template_html = hbs.compile(outer_template)(final_model);
+				final_model['content'] = template_html;
+				template_html = hbs.compile(shell_template)(final_model);
 			}
 
 			res.send(template_html);
