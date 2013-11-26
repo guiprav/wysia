@@ -35,16 +35,16 @@ var app = express();
 app.use(express.logger());
 app.use(express.static(process.cwd()));
 
-app.get
-(
-	'/:template', function (req, res)
-	{
-		req.params.models = '';
-		handler(req, res);
-	}
-);
-
+app.get('/:template', no_models_handler);
+app.post('/:template', no_models_handler);
 app.get('/:template/:models', handler);
+app.post('/:template/:models', handler);
+
+function no_models_handler (req, res)
+{
+	req.params.models = '';
+	handler(req, res);
+}
 
 function handler (req, res)
 {
