@@ -128,5 +128,6 @@ function handler (req, res)
 	}
 }
 
-http.createServer(app).listen(process.env.PORT || 4000);
-
+var port = process.env.PORT || 4000;
+http.createServer(app).listen(port);
+console.log("Wysia started on port " + port + ".");
