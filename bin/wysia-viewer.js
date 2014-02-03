@@ -6,7 +6,7 @@ var hbs = require('handlebars');
 var marked = require('marked');
 hbs.registerHelper
 (
-	'markdown', function (text)
+	'markdown', function(text)
 	{
 		if (!text)
 		{
@@ -34,12 +34,12 @@ app.get('/:template', no_models_handler);
 app.post('/:template', no_models_handler);
 app.get('/:template/:models', handler);
 app.post('/:template/:models', handler);
-function no_models_handler (req, res)
+function no_models_handler(req, res)
 {
 	req.params.models = '';
 	handler(req, res);
 }
-function handler (req, res)
+function handler(req, res)
 {
 	req.params.models = req.params.models.split('+');
 	if (req.params.models.length === 1 && req.params.models[0] === '')
@@ -49,13 +49,13 @@ function handler (req, res)
 	var shell_template;
 	fs.readFile
 	(
-		'shell.hbs', 'utf8', function (err, template)
+		'shell.hbs', 'utf8', function(err, template)
 		{
 			shell_template = template;
 			fs.readFile(req.params.template + '.hbs', 'utf8', template_loaded);
 		}
 	);
-	function template_loaded (err, template)
+	function template_loaded(err, template)
 	{
 		if (err)
 		{
@@ -66,7 +66,7 @@ function handler (req, res)
 		var final_model = {};
 		var models_loaded = 0;
 		(
-			function load_model (err, model)
+			function load_model(err, model)
 			{
 				if (err)
 				{
@@ -93,7 +93,7 @@ function handler (req, res)
 				}
 			}
 		)();
-		function final_model_ready ()
+		function final_model_ready()
 		{
 			var template_html = hbs.compile(template)(final_model);
 			if (shell_template)
