@@ -86,7 +86,7 @@ function handler (req, res)
 				if (models_loaded !== req.params.models.length)
 				{
 					fs.readFile(req.params.models[models_loaded] + '.json', 'utf8', load_model);
-	                        }
+				}
 				else
 				{
 					final_model_ready();
