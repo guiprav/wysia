@@ -41,6 +41,8 @@ else
 var app = express();
 app.use(express.logger());
 app.use(express.static(process.cwd()));
+app.use(express.cookieParser());
+app.use(express.bodyParser());
 app.get('/:template', no_models_handler);
 app.post('/:template', no_models_handler);
 app.get('/:template/:models', handler);
