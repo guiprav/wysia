@@ -28,6 +28,16 @@ hbs.registerHelper
 		);
 	}
 );
+var dynamic_model_shaper;
+var dms_path = process.cwd() + '/dynamic_model_shaper.js';
+if(fs.existsSync(dms_path))
+{
+	dynamic_model_shaper = require(dms_path);
+}
+else
+{
+	dynamic_model_shaper = function() {};
+}
 var app = express();
 app.use(express.logger());
 app.use(express.static(process.cwd()));
@@ -90,12 +100,13 @@ function handler(req, res)
 				}
 				else
 				{
-					final_model_ready();
+					all_models_loaded();
 				}
 			}
 		)();
-		function final_model_ready()
+		function all_models_loaded()
 		{
+			dynamic_model_shaper(final_model, req);
 			var template_html = hbs.compile(template)(final_model);
 			if (shell_template)
 			{
