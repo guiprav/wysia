@@ -4,6 +4,7 @@ var http = require('http');
 var express = require('express');
 var hbs = require('handlebars');
 var marked = require('marked');
+var merge = require('../src/merge');
 hbs.registerHelper
 (
 	'markdown', function(text)
@@ -80,7 +81,7 @@ function handler(req, res)
 					model = JSON.parse(model);
 					for (var key in model)
 					{
-						final_model[key] = model[key];
+						final_model[key] = merge(final_model[key], model[key]);
 					}
 				}
 				if (models_loaded !== req.params.models.length)
