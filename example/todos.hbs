@@ -1,0 +1,28 @@
+<!doctype html>
+<link rel="stylesheet" href="style.css">
+<main>
+	<h1>
+		TO-DOs
+	</h1>
+	<form method="post" action-name="add-task">
+		<input type="text" name="task">
+		<input type="submit">
+	</form>
+	<ol class="tasks">
+		{{#each tasks}}
+			<li>
+				{{this}}
+				<form method="post" action-name="clear-task">
+					<input type="hidden" name="task-id" value="{{@index}}">
+					<input type="submit" value="Clear">
+				</form>
+			</li>
+		{{else}}
+			<li class="empty-list">
+				Wee! Nothing to be done!
+			</li>
+		{{/each}}
+	</ol>
+</main>
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<script src="script.js"></script>
