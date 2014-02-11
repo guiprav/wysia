@@ -34,9 +34,9 @@ app.use(express.static(process.cwd()));
 app.use(express.cookieParser());
 app.use(express.bodyParser());
 app.get('/:template', no_models_handler);
-app.post('/:template', no_models_handler);
+app.post('/:template', post_redirect);
 app.get('/:template/:models', handler);
-app.post('/:template/:models', handler);
+app.post('/:template/:models', post_redirect);
 function no_models_handler(req, res)
 {
 	req.params.models = '';
@@ -120,6 +120,10 @@ function handler(req, res)
 			res.send(template_html);
 		}
 	}
+}
+function post_redirect(req, res)
+{
+	res.redirect(req.url);
 }
 var port = process.env.PORT || 4000;
 http.createServer(app).listen(port);
