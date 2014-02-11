@@ -6,6 +6,8 @@ function merge(left, right)
 	var fn_tab =
 	{
 		'data<-data': replace_data,
+		'data<-object': replace_data,
+		'data<-array': replace_data,
 		'object<-object': merge_objects,
 		'array<-array': merge_arrays,
 		'object<-array': replace_data,
