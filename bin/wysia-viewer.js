@@ -28,16 +28,6 @@ hbs.registerHelper
 		);
 	}
 );
-var dynamic_model_shaper;
-var dms_path = process.cwd() + '/dynamic_model_shaper.js';
-if(fs.existsSync(dms_path))
-{
-	dynamic_model_shaper = require(dms_path);
-}
-else
-{
-	dynamic_model_shaper = function() {};
-}
 var app = express();
 app.use(express.logger());
 app.use(express.static(process.cwd()));
@@ -108,7 +98,18 @@ function handler(req, res)
 		)();
 		function all_models_loaded()
 		{
-			dynamic_model_shaper(final_model, req);
+			if(req.headers.cookie)
+			{
+				try
+				{
+					var cookies = JSON.parse(unescape(req.headers.cookie));
+					final_model = merge(final_model, cookies);
+				}
+				catch(error)
+				{
+					console.error("Failed to merge in cookies:", error);
+				}
+			}
 			var template_html = hbs.compile(template)(final_model);
 			if (shell_template)
 			{
