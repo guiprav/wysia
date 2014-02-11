@@ -110,6 +110,7 @@ function handler(req, res)
 					console.error("Failed to merge in cookies:", error);
 				}
 			}
+			final_model.models = req.params.models;
 			var template_html = hbs.compile(template)(final_model);
 			if (shell_template)
 			{
