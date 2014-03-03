@@ -1,1 +1,1 @@
-node ../bin/wysia-viewer.js
+node ../bin/wysia.js
