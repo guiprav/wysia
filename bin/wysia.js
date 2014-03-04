@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var fs = require('fs');
+var glob = require('glob');
 var path = require('path');
 var http = require('http');
 var express = require('express');
@@ -40,6 +41,7 @@ function render(shell, page, models, cookies, cb) {
 	var shell_template;
 	var page_template;
 	var model_data = {};
+	var partials = {};
 	(function load_shell() {
 		if(!shell) {
 			load_page();
@@ -103,7 +105,7 @@ function render(shell, page, models, cookies, cb) {
 	}
 	function merge_cookies() {
 		if(!cookies) {
-			render_();
+			load_partials();
 			return;
 		}
 		try {
@@ -113,15 +115,61 @@ function render(shell, page, models, cookies, cb) {
 			cb(err);
 			return;
 		}
-		render_();
+		load_partials();
+	}
+	function load_partials() {
+		var glob_ = args['templates-dir'] + '/*.partial.hbs';
+		var partial_files;
+		glob (
+			glob_, function(err, files) {
+				if(err) {
+					cb(err);
+					return;
+				}
+				partial_files = files;
+				load_partial();
+			}
+		);
+		var load_count = 0;
+		function load_partial(err, name, partial) {
+			if(err) {
+				cb(err);
+				return;
+			}
+			if(partial) {
+				partials[name] = partial;
+			}
+			if(load_count < partial_files.length) {
+				var path_ = partial_files[load_count++];
+				var name = path.basename(path_, '.partial.hbs');
+				fs.readFile (
+					path_, 'utf8', function(err, partial) {
+						load_partial(err, name, partial);
+					}
+				);
+			}
+			else {
+				render_();
+			}
+		}
 	}
 	function render_() {
-		var html = hbs.compile(page_template)(model_data);
-		if(shell_template) {
-			model_data.page_html = html;
-			html = hbs.compile(shell_template)(model_data);
+		try {
+			hbs.partials = {};
+			for(var name in partials) {
+				var partial = partials[name];
+				hbs.registerPartial(name, partial);
+			}
+			var html = hbs.compile(page_template)(model_data);
+			if(shell_template) {
+				model_data.page_html = html;
+				html = hbs.compile(shell_template)(model_data);
+			}
+			cb(null, html);
 		}
-		cb(null, html);
+		catch(err) {
+			cb(err);
+		}
 	}
 }
 function handler(req, res) {
