@@ -37,6 +37,25 @@ app.use (
 );
 app.use(express.cookieParser());
 app.use(express.bodyParser());
+app.use (
+	function(req, res, next) {
+		res.send_error = function(err) {
+			if(err.not_found) {
+				res.status(404);
+			}
+			else {
+				res.status(500);
+			}
+			if(err instanceof Error) {
+				res.send(err.toString());
+			}
+			else {
+				res.send(err);
+			}
+		};
+		next();
+	}
+);
 function render(shell, page, models, cookies, cb) {
 	var shell_template;
 	var page_template;
@@ -191,13 +210,7 @@ function handler(req, res) {
 	render (
 		shell, page, models, cookies, function(err, html) {
 			if(err) {
-				if(err.not_found) {
-					res.status(404);
-				}
-				else {
-					res.status(500);
-				}
-				res.send(err);
+				res.send_error(err);
 				return;
 			}
 			res.send(html);
