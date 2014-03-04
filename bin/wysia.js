@@ -60,6 +60,7 @@ app.use (
 		next();
 	}
 );
+var shared_state = {};
 function render(shell, page, models, cookies, cb) {
 	var shell_template;
 	var page_template;
@@ -122,9 +123,19 @@ function render(shell, page, models, cookies, cb) {
 				fs.readFile(path, 'utf8', load_model);
 			}
 			else {
-				merge_cookies();
+				merge_shared_state();
 			}
 		})();
+	}
+	function merge_shared_state() {
+		try {
+			model_data = merge(model_data, shared_state);
+		}
+		catch(err) {
+			cb(err);
+			return;
+		}
+		merge_cookies();
 	}
 	function merge_cookies() {
 		if(!cookies) {
@@ -221,16 +232,130 @@ function get_handler(req, res) {
 		}
 	);
 }
-function post_redirect(req, res) {
+function post_handler(req, res) {
+	try {
+		if(typeof(req.body) === 'object' && req.body['$shared-state-updates']) {
+			var updates = JSON.parse(req.body['$shared-state-updates']);
+			for(var i = 0; i < updates.length; i += 2) {
+				var path = updates[i];
+				var value = updates[i + 1];
+				if(value === undefined) {
+					var err = new Error("Missing last update element.");
+					err.bad_request = true;
+					throw err;
+				}
+				var action;
+				(function determine_action_and_value() {
+					var actions = [
+						'$set'
+						, '$destroy'
+						, '$add'
+						, '$push'
+						, '$unshift'
+						, '$pop'
+						, '$shift'
+					];
+					switch(typeof(value)) {
+						case 'object':
+							var keys = Object.keys(value);
+							if(actions.indexOf(keys[0]) !== -1) {
+								action = keys[0];
+								value = value[keys[0]];
+								return;
+							}
+							break;
+						case 'string':
+							if(actions.indexOf(value) !== -1) {
+								action = value;
+								value = undefined;
+								return;
+							}
+							break;
+					}
+					action = '$set';
+				})();
+				var target_parent = (function() {
+					var current_node = shared_state;
+					var path_nodes = path.split('.');
+					path_nodes.forEach (
+						function(next_node_name, i) {
+							var next_node = current_node[next_node_name];
+							var is_last = (i === path_nodes.length - 1);
+							if(next_node === undefined && !is_last) {
+								next_node = current_node[next_node_name] = {};
+							}
+							if(!is_last) {
+								current_node = next_node;
+							}
+						}
+					);
+					return current_node;
+				})();
+				var target_name = (function() {
+					var last_dot_index = path.lastIndexOf('.');
+					if(last_dot_index === -1) {
+						return path;
+					}
+					return path.slice(last_dot_index + 1);
+				})();
+				switch(action) {
+					case '$set':
+						target_parent[target_name] = value;
+						break;
+					case '$destroy':
+						delete target_parent[target_name];
+						break;
+					case '$add':
+						if(target_parent[target_name] === undefined) {
+							target_parent[target_name] = 0;
+						}
+						if(typeof(target_parent[target_name]) !== 'number') {
+							var err = new Error("'" + path + "' is not a number.");
+							err.bad_request = true;
+							throw err;
+						}
+						target_parent[target_name] += value;
+						break;
+					case '$push':
+					case '$unshift':
+						var fn = action.slice(1);
+						if(target_parent[target_name] === undefined) {
+							target_parent[target_name] = [];
+						}
+						if(!Array.isArray(target_parent[target_name])) {
+							var err = new Error("'" + path + "' is not an array.");
+							err.bad_request = true;
+							throw err;
+						}
+						target_parent[target_name][fn](value);
+						break;
+					case '$pop':
+					case '$shift':
+						if(!Array.isArray(target_parent[target_name])) {
+							var err = new Error("'" + path + "' is not an array.");
+							err.bad_request = true;
+							throw err;
+						}
+						var fn = action.slice(1);
+						target_parent[target_name][fn]();
+						break;
+				}
+			}
+		}
+	}
+	catch(err) {
+		res.send_error(err);
+		return;
+	}
 	res.redirect(req.url);
 }
 app.get('/:shell,:page', get_handler);
-app.post('/:shell,:page', post_redirect);
+app.post('/:shell,:page', post_handler);
 app.get('/:shell,:page/:models', get_handler);
-app.post('/:shell,:page/:models', post_redirect);
+app.post('/:shell,:page/:models', post_handler);
 app.get('/:page', get_handler);
-app.post('/:page', post_redirect);
+app.post('/:page', post_handler);
 app.get('/:page/:models', get_handler);
-app.post('/:page/:models', post_redirect);
+app.post('/:page/:models', post_handler);
 app.listen(args.port);
 console.log("Wysia started on port", args.port + ".");
