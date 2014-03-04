@@ -1,10 +1,8 @@
-function merge(left, right)
-{
+function merge(left, right) {
 	var left_type = merge_data_type(left);
 	var right_type = merge_data_type(right);
 	var combination = left_type + '<-' + right_type;
-	var fn_tab =
-	{
+	var fn_tab = {
 		'data<-data': replace_data,
 		'data<-object': replace_data,
 		'data<-array': replace_data,
@@ -15,14 +13,11 @@ function merge(left, right)
 	};
 	return fn_tab[combination](left, right);
 }
-function merge_data_type(value)
-{
-	if(!value && value !== false)
-	{
+function merge_data_type(value) {
+	if(!value && value !== false) {
 		return 'data';
 	}
-	switch(value.constructor)
-	{
+	switch(value.constructor) {
 		case Object:
 			return 'object';
 		case Array:
@@ -31,25 +26,20 @@ function merge_data_type(value)
 			return 'data';
 	}
 }
-function merge_objects(left, right)
-{
+function merge_objects(left, right) {
 	var mix = {};
-	for(var key in left)
-	{
+	for(var key in left) {
 		mix[key] = left[key];
 	}
-	for(var key in right)
-	{
+	for(var key in right) {
 		mix[key] = merge(mix[key], right[key]);
 	}
 	return mix;
-};
-function merge_arrays(left, right)
-{
+}
+function merge_arrays(left, right) {
 	return [].concat(left, right);
 }
-function replace_data(left, right)
-{
+function replace_data(left, right) {
 	return right;
 }
 module.exports = merge;
