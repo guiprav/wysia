@@ -1,1 +1,0 @@
-node ../bin/wysia.js
