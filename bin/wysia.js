@@ -40,6 +40,10 @@ app.use(express.bodyParser());
 app.use (
 	function(req, res, next) {
 		res.send_error = function(err) {
+			if(err.bad_request) {
+				res.status(400);
+			}
+			else
 			if(err.not_found) {
 				res.status(404);
 			}
