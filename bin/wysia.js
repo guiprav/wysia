@@ -195,7 +195,7 @@ function render(shell, page, models, cookies, cb) {
 		}
 	}
 }
-function handler(req, res) {
+function get_handler(req, res) {
 	var shell = req.params.shell || null;
 	var page = req.params.page;
 	var models = [];
@@ -224,13 +224,13 @@ function handler(req, res) {
 function post_redirect(req, res) {
 	res.redirect(req.url);
 }
-app.get('/:shell,:page', handler);
+app.get('/:shell,:page', get_handler);
 app.post('/:shell,:page', post_redirect);
-app.get('/:shell,:page/:models', handler);
+app.get('/:shell,:page/:models', get_handler);
 app.post('/:shell,:page/:models', post_redirect);
-app.get('/:page', handler);
+app.get('/:page', get_handler);
 app.post('/:page', post_redirect);
-app.get('/:page/:models', handler);
+app.get('/:page/:models', get_handler);
 app.post('/:page/:models', post_redirect);
 app.listen(args.port);
 console.log("Wysia started on port", args.port + ".");
