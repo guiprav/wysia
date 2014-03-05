@@ -114,6 +114,7 @@ function render(shell, page, models, cookies, cb) {
 				}
 				catch(err) {
 					cb(err);
+					return;
 				}
 			}
 			if(load_count < models.length) {
