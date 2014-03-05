@@ -14,7 +14,7 @@
     "type": "git",
     "url": "https://github.com/n2liquid/wysia.git"
   },
-  "license": "GPLv3",
+  "license": "AGPLv3",
   "engines": {
     "node": ">=0.10"
   },

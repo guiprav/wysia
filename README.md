@@ -46,3 +46,15 @@ Other file extensions:
 
     wysia your-templates -t ?.not-hbs -d ?.not-json
 
+Copying
+-------
+
+![](https://www.gnu.org/graphics/agplv3-155x51.png)
+
+Wysia is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Websites served via Wysia are derivative works and must as such be redistributable under the terms of the AGPLv3 as well.
+
+Unfriendliness with the proprietary paradigm is intentional. If you're writing proprietary software, please consider [respecting your users' freedom instead.](https://www.gnu.org/philosophy/free-sw.html)
+
+A copy of AGPLv3 can be found in [COPYING.](COPYING)
