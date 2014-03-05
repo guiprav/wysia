@@ -93,6 +93,7 @@ var shared_state = (function() {
 			console.log("Starting with empty shared_state.");
 		}
 	}
+	return {};
 })();
 function render(shell, page, models, cookies, cb) {
 	var shell_template;
