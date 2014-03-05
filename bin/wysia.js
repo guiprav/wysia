@@ -181,6 +181,30 @@ function render(shell, page, models, cookies, cb) {
 			return;
 		}
 		try {
+			for(var key in cookies) {
+				cookies[key] = (function execute_copies(node) {
+					if(typeof(node) !== 'object') {
+						return node;
+					}
+					var keys = Object.keys(node);
+					if(keys[0] !== '$copy') {
+						for(var key in node) {
+							node[key] = execute_copies(node[key]);
+						}
+						return node;
+					}
+					var path = node[keys[0]].split('.');
+					return path.reduce (
+						function(current_path_node, next_path_node_name) {
+							if(typeof(current_path_node) !== 'object') {
+								return undefined;
+							}
+							return current_path_node[next_path_node_name];
+						}
+						, model_data
+					);
+				})(cookies[key]);
+			}
 			model_data = merge(model_data, cookies);
 		}
 		catch(err) {
