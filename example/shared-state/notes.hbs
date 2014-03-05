@@ -1,0 +1,15 @@
+<!doctype html>
+<ol>
+	{{#each notes}}
+		<li>
+			{{this}}
+		</li>
+	{{/each}}
+</ol>
+<form method="post">
+	<input type="text" name="$shared-state-updates" value='[
+		"notes", { "$push": { "$from-form": "note" } }
+	]'>
+	<input type="text" name="note">
+	<input type="submit">
+</form>
