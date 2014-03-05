@@ -19,32 +19,16 @@ Other examples:
 Usage
 -----
 
-    wysia [DIRECTORY] [OPTION]...
+	wysia [templates-dir] [options]
 
-    Serve templates from [DIRECTORY] or the current directory.
+	templates-dir: Serve templates from this directory.
+		Default: ./
 
-    -p, --port    	   The port to run the HTTP server on (default: 4000).
-    -t, --templates	   Templates subdirectory and file extension override (optional).
-    -d, --data		   Mock data subdirectory and file extension override (optional).
-
-Running from current directory:
-
-    cd your-templates
-    wysia
-
-Separate template and/or mock data directories:
-
-    # Serve templates from `./your-templates/templates/*.hbs` with
-    # mock data from `./your-templates/mock-data/*.json`:
-
-    wysia your-templates -t templates -d mock-data
-
-Other file extensions:
-
-    # Serve templates from `./your-templates/*.not-hbs` with
-    # mock data from `./your-templates/*.not-json`:
-
-    wysia your-templates -t ?.not-hbs -d ?.not-json
+	Options:
+		-w, --wysia-subdir: Subdirectory where JSON models are stored.
+			Default: wysia/
+		-p, --port: Listening port to serve from.
+			Default: 3000
 
 Copying
 -------
