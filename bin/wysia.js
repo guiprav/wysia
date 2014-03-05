@@ -335,7 +335,7 @@ function post_handler(req, res) {
 							err.bad_request = true;
 							throw err;
 						}
-						target_parent[target_name] += parsed.value;
+						target_parent[target_name] += parseFloat(parsed.value);
 						break;
 					case '$push':
 					case '$unshift':
