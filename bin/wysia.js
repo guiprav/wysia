@@ -232,6 +232,29 @@ function get_handler(req, res) {
 		}
 	);
 }
+function parse_meta(value, valid_metas) {
+	switch(typeof(value)) {
+		case 'object':
+			var keys = Object.keys(value);
+			if(valid_metas.indexOf(keys[0]) !== -1) {
+				return {
+					meta: keys[0],
+					value: value[keys[0]]
+				};
+			}
+			break;
+		case 'string':
+			if(valid_metas.indexOf(value) !== -1) {
+				return {
+					meta: value
+				};
+			}
+			break;
+	}
+	return {
+		value: value
+	};
+}
 function post_handler(req, res) {
 	try {
 		if(typeof(req.body) === 'object' && req.body['$shared-state-updates']) {
@@ -244,36 +267,6 @@ function post_handler(req, res) {
 					err.bad_request = true;
 					throw err;
 				}
-				var action;
-				(function determine_action_and_value() {
-					var actions = [
-						'$set'
-						, '$destroy'
-						, '$add'
-						, '$push'
-						, '$unshift'
-						, '$pop'
-						, '$shift'
-					];
-					switch(typeof(value)) {
-						case 'object':
-							var keys = Object.keys(value);
-							if(actions.indexOf(keys[0]) !== -1) {
-								action = keys[0];
-								value = value[keys[0]];
-								return;
-							}
-							break;
-						case 'string':
-							if(actions.indexOf(value) !== -1) {
-								action = value;
-								value = undefined;
-								return;
-							}
-							break;
-					}
-					action = '$set';
-				})();
 				var target_parent = (function() {
 					var current_node = shared_state;
 					var path_nodes = path.split('.');
@@ -298,9 +291,22 @@ function post_handler(req, res) {
 					}
 					return path.slice(last_dot_index + 1);
 				})();
-				switch(action) {
+				var parsed = parse_meta (
+					value,
+					[
+						'$set'
+						, '$destroy'
+						, '$add'
+						, '$push'
+						, '$unshift'
+						, '$pop'
+						, '$shift'
+					]
+				);
+				parsed.meta = parsed.meta || '$set';
+				switch(parsed.meta) {
 					case '$set':
-						target_parent[target_name] = value;
+						target_parent[target_name] = parsed.value;
 						break;
 					case '$destroy':
 						delete target_parent[target_name];
@@ -314,11 +320,11 @@ function post_handler(req, res) {
 							err.bad_request = true;
 							throw err;
 						}
-						target_parent[target_name] += value;
+						target_parent[target_name] += parsed.value;
 						break;
 					case '$push':
 					case '$unshift':
-						var fn = action.slice(1);
+						var fn = parsed.meta.slice(1);
 						if(target_parent[target_name] === undefined) {
 							target_parent[target_name] = [];
 						}
@@ -327,7 +333,7 @@ function post_handler(req, res) {
 							err.bad_request = true;
 							throw err;
 						}
-						target_parent[target_name][fn](value);
+						target_parent[target_name][fn](parsed.value);
 						break;
 					case '$pop':
 					case '$shift':
@@ -336,7 +342,7 @@ function post_handler(req, res) {
 							err.bad_request = true;
 							throw err;
 						}
-						var fn = action.slice(1);
+						var fn = parsed.meta.slice(1);
 						target_parent[target_name][fn]();
 						break;
 				}
