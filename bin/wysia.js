@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+var vm = require('vm');
 var fs = require('fs');
 var glob = require('glob');
 var path = require('path');
@@ -232,141 +233,21 @@ function get_handler(req, res) {
 		}
 	);
 }
-function parse_meta(value, valid_metas) {
-	switch(typeof(value)) {
-		case 'object':
-			var keys = Object.keys(value);
-			if(valid_metas.indexOf(keys[0]) !== -1) {
-				return {
-					meta: keys[0],
-					value: value[keys[0]]
-				};
-			}
-			break;
-		case 'string':
-			if(valid_metas.indexOf(value) !== -1) {
-				return {
-					meta: value
-				};
-			}
-			break;
-	}
-	return {
-		value: value
-	};
-}
 function post_handler(req, res) {
-	try {
-		if(typeof(req.body) === 'object' && req.body['$shared-state-updates']) {
-			var updates = JSON.parse(req.body['$shared-state-updates']);
-			for(var i = 0; i < updates.length; i += 2) {
-				var path = updates[i];
-				var value = updates[i + 1];
-				if(value === undefined) {
-					var err = new Error("Missing last update element.");
-					err.bad_request = true;
-					throw err;
+	if(req.body['$state-update-logic']) {
+		try {
+			vm.runInNewContext (
+				req.body['$state-update-logic']
+				, {
+					state: shared_state
+					, form_data: req.body
 				}
-				var target_parent = (function() {
-					var current_node = shared_state;
-					var path_nodes = path.split('.');
-					path_nodes.forEach (
-						function(next_node_name, i) {
-							var next_node = current_node[next_node_name];
-							var is_last = (i === path_nodes.length - 1);
-							if(next_node === undefined && !is_last) {
-								next_node = current_node[next_node_name] = {};
-							}
-							if(!is_last) {
-								current_node = next_node;
-							}
-						}
-					);
-					return current_node;
-				})();
-				var target_name = (function() {
-					var last_dot_index = path.lastIndexOf('.');
-					if(last_dot_index === -1) {
-						return path;
-					}
-					return path.slice(last_dot_index + 1);
-				})();
-				var parsed = parse_meta (
-					value,
-					[
-						'$set'
-						, '$destroy'
-						, '$add'
-						, '$push'
-						, '$unshift'
-						, '$pop'
-						, '$shift'
-					]
-				);
-				parsed.value = (function add_form_data(node) {
-					var parsed = parse_meta(node, ['$from-form']);
-					if(parsed.meta === '$from-form') {
-						parsed.value = add_form_data(parsed.value);
-						return req.body[parsed.value];
-					}
-					else {
-						if(typeof(parsed.value) === 'object') {
-							for(var key in parsed.value) {
-								parsed.value[key] = add_form_data(parsed.value[key]);
-							}
-						}
-					}
-					return parsed.value;
-				})(parsed.value);
-				parsed.meta = parsed.meta || '$set';
-				switch(parsed.meta) {
-					case '$set':
-						target_parent[target_name] = parsed.value;
-						break;
-					case '$destroy':
-						delete target_parent[target_name];
-						break;
-					case '$add':
-						if(target_parent[target_name] === undefined) {
-							target_parent[target_name] = 0;
-						}
-						if(typeof(target_parent[target_name]) !== 'number') {
-							var err = new Error("'" + path + "' is not a number.");
-							err.bad_request = true;
-							throw err;
-						}
-						target_parent[target_name] += parseFloat(parsed.value);
-						break;
-					case '$push':
-					case '$unshift':
-						var fn = parsed.meta.slice(1);
-						if(target_parent[target_name] === undefined) {
-							target_parent[target_name] = [];
-						}
-						if(!Array.isArray(target_parent[target_name])) {
-							var err = new Error("'" + path + "' is not an array.");
-							err.bad_request = true;
-							throw err;
-						}
-						target_parent[target_name][fn](parsed.value);
-						break;
-					case '$pop':
-					case '$shift':
-						if(!Array.isArray(target_parent[target_name])) {
-							var err = new Error("'" + path + "' is not an array.");
-							err.bad_request = true;
-							throw err;
-						}
-						var fn = parsed.meta.slice(1);
-						target_parent[target_name][fn]();
-						break;
-				}
-			}
+			);
 		}
-	}
-	catch(err) {
-		res.send_error(err);
-		return;
+		catch(err) {
+			res.send_error(err);
+			return;
+		}
 	}
 	res.redirect(req.url);
 }
