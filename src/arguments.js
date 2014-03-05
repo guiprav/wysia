@@ -29,7 +29,7 @@ function print_usage() {
 	log("    Default:", defaults['templates-dir'] + '/');
 	log();
 	log("Options:");
-	log("    -w, --wysia-subdir");
+	log("    -w, --wysia-subdir: Subdirectory where JSON models are stored.");
 	log("        Default:", defaults['wysia-subdir'] + '/');
 	log("    -p, --port: Listening port to serve from.");
 	log("        Default:", defaults.port);
