@@ -50,11 +50,11 @@ app.use (
 			else {
 				res.status(500);
 			}
-			if(err instanceof Error) {
-				res.send(err.toString());
+			if(err.constructor === Object) {
+				res.send(err);
 			}
 			else {
-				res.send(err);
+				res.send(err.toString());
 			}
 		};
 		next();
