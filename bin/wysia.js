@@ -70,11 +70,14 @@ app.use (
 			else {
 				res.status(500);
 			}
-			if(err.constructor === Object) {
+			if(!err.stack) {
 				res.send(err);
+				console.error("Non-standard error thrown:", err);
 			}
 			else {
-				res.send(err.toString());
+				res.set('Content-Type', 'text/plain');
+				res.send(err.stack);
+				console.error(err.stack);
 			}
 		};
 		next();
