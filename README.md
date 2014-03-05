@@ -18,6 +18,20 @@ Other examples:
 * `/admin/logged-in,admin-user`
 * Etc.
 
+Usage
+-----
+
+	wysia [templates-dir] [options]
+
+	templates-dir: Serve templates from this directory.
+		Default: ./
+
+	Options:
+		-w, --wysia-subdir: Subdirectory where JSON models are stored.
+			Default: none (models loaded from templates-dir)
+		-p, --port: Listening port to serve from.
+			Default: 3000
+
 Shared state and cookies!
 -------------------------
 
@@ -41,20 +55,6 @@ In order for POST requests to manipulate shared state, a field called `$state-up
 Wysia will detect the presence of `$state-update-logic` and execute the code, which in turn pushes the task description from form field `'task'` value into the `tasks` shared state array.
 
 __Note__: All site visitors have unrestricted access to shared state like that. For prototyping this is very handy, but bear in mind that in a production setting that's just catastrophic.
-
-Usage
------
-
-	wysia [templates-dir] [options]
-
-	templates-dir: Serve templates from this directory.
-		Default: ./
-
-	Options:
-		-w, --wysia-subdir: Subdirectory where JSON models are stored.
-			Default: none (models loaded from templates-dir)
-		-p, --port: Listening port to serve from.
-			Default: 3000
 
 Copying
 -------
