@@ -31,6 +31,7 @@ var app = express();
 if(app.get('env') === 'development') {
 	app.use(express.logger());
 }
+app.use(express.static(__dirname + '/../public'));
 app.use (
 	express.static (
 		path.resolve(process.cwd(), args['templates-dir'])
