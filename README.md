@@ -1,19 +1,21 @@
 Wysia
 =====
 
-Wysia ("What you see is awesome!") is an HTML template + mock data viewer. It is meant to showcase web designs with the least amount of duplication by using the same templates used in the final web site or application.
+Wysia ("What you see is awesome!") is in essence an HTML template + mock data viewer. A more obnoxious description might be a functional prototyping platform for front end development.
 
-It can also be used together with PhantomJS in order to comprehensively unit test your web site's appearance -- taking photos of elements and comparing them to saved ones -- and maybe client-side behavior if you mock the web API.
+It is meant to showcase web designs with the least amount of duplication by using the same templates used in the final web site or application.
+
+It can also be used together with PhantomJS in order to comprehensively unit test your web site's appearance -- taking photos of elements and comparing them to saved ones -- as well as client-side behavior if you isolate mock logic from production logic.
 
 It will start a server that serves all Handlebars templates in the current directory backed by the specified JSON files.
 
-E.g. if you `GET /article-view/logged-in+sample-article`, the server will render `article-view.hbs` with `logged-in.json` and `sample-article.json`.
+E.g. if you `GET /article-view/logged-in,sample-article`, the server will render `article-view.hbs` with `logged-in.json` and `sample-article.json`.
 
 Other examples:
 
-* `/article-view/logged-out+sample-article`
-* `/home/logged-out+sample-twitter-feed+sample-articles`
-* `/admin/logged-in+admin-user`
+* `/article-view/logged-out,sample-article`
+* `/home/logged-out,sample-articles,sample-blogroll`
+* `/admin/logged-in,admin-user`
 * Etc.
 
 Usage
@@ -26,7 +28,7 @@ Usage
 
 	Options:
 		-w, --wysia-subdir: Subdirectory where JSON models are stored.
-			Default: wysia/
+			Default: none (models loaded from templates-dir)
 		-p, --port: Listening port to serve from.
 			Default: 3000
 

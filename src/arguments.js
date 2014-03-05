@@ -18,7 +18,7 @@
 */
 var defaults = {};
 defaults['templates-dir'] = '.';
-defaults['wysia-subdir'] = 'wysia';
+defaults['wysia-subdir'] = '.';
 defaults.port = 3000;
 var parsed = require('minimist')(process.argv.slice(2));
 var log = console.log;
@@ -30,7 +30,7 @@ function print_usage() {
 	log();
 	log("Options:");
 	log("    -w, --wysia-subdir: Subdirectory where JSON models are stored.");
-	log("        Default:", defaults['wysia-subdir'] + '/');
+	log("        Default: none (models loaded from templates-dir)");
 	log("    -p, --port: Listening port to serve from.");
 	log("        Default:", defaults.port);
 	log();
