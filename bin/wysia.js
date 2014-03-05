@@ -251,19 +251,39 @@ function get_handler(req, res) {
 }
 function post_handler(req, res) {
 	if(req.body['$state-update-logic']) {
+		var cookies = (function() {
+			if(req.headers.cookie) {
+				try {
+					return JSON.parse(unescape(req.headers.cookie));
+				}
+				catch(err) {
+					console.error("Failed to parse cookies:", req.headers.cookie + ".");
+					return undefined;
+				}
+			}
+			return {};
+		})();
+		var set_cookies_if_any = function() {
+			if(cookies !== undefined) {
+				res.set('Set-Cookie', escape(JSON.stringify(cookies)));
+			}
+		};
 		try {
 			vm.runInNewContext (
 				req.body['$state-update-logic']
 				, {
 					state: shared_state
+					, cookies: cookies
 					, form_data: req.body
 				}
 			);
 		}
 		catch(err) {
+			set_cookies_if_any();
 			res.send_error(err);
 			return;
 		}
+		set_cookies_if_any();
 	}
 	res.redirect(req.url);
 }
