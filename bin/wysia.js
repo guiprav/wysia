@@ -303,6 +303,21 @@ function post_handler(req, res) {
 						, '$shift'
 					]
 				);
+				parsed.value = (function add_form_data(node) {
+					var parsed = parse_meta(node, ['$from-form']);
+					if(parsed.meta === '$from-form') {
+						parsed.value = add_form_data(parsed.value);
+						return req.body[parsed.value];
+					}
+					else {
+						if(typeof(parsed.value) === 'object') {
+							for(var key in parsed.value) {
+								parsed.value[key] = add_form_data(parsed.value[key]);
+							}
+						}
+					}
+					return parsed.value;
+				})(parsed.value);
 				parsed.meta = parsed.meta || '$set';
 				switch(parsed.meta) {
 					case '$set':
