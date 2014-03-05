@@ -205,6 +205,7 @@ function render(shell, page, models, cookies, cb) {
 	}
 	function render_() {
 		try {
+			model_data.is_wysia = true;
 			hbs.partials = {};
 			for(var name in partials) {
 				var partial = partials[name];
