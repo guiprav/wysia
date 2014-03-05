@@ -16,12 +16,12 @@ hbs.registerHelper (
 		}
 		return new hbs.SafeString (
 			marked (
-				text,
-				{
-					gfm: true,
-					sanitize: true,
-					breaks: true,
-					tables: true
+				text
+				, {
+					gfm: true
+					, sanitize: true
+					, breaks: true
+					, tables: true
 				}
 			)
 		);
