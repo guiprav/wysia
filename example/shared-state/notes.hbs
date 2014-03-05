@@ -7,19 +7,7 @@
 	{{/each}}
 </ol>
 <form method="post">
+	<input type="hidden" name="$state-update-logic" value="state.notes.push(form_data.note)">
 	<input type="text" name="note">
 	<input type="submit">
 </form>
-<script>
-	var code_field = document.createElement('input');
-	code_field.type = 'hidden';
-	code_field.name = '$state-update-logic';
-	code_field.value = (function() {
-		if(!state.notes) {
-			state.notes = [];
-		}
-		state.notes.push(form_data.note);
-	}).toString();
-	code_field.value = '(' + code_field.value + ')();';
-	document.forms[0].appendChild(code_field);
-</script>
