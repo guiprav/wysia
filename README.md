@@ -41,6 +41,8 @@ Shared state can be changed via POST requests, which allow site visitors some le
 
 Browser cookies are merged lastly to allow for mock authentication, as well as other things up to your imagination.
 
+Shared state can be accessed on the client-side if the page templates include the `wysia-shared-state` partial. This produces a script tag which creates a global `wysia.shared_state` object containing the shared state used to generate that page.
+
 How POST requests work?
 -----------------------
 

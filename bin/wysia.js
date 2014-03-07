@@ -245,6 +245,12 @@ function render(shell, page, models, cookies, cb) {
 				);
 			}
 			else {
+				partials['wysia-shared-state'] =
+						'<script>'
+						+ '\nwindow.wysia = window.wysia || {};'
+						+ '\nwindow.wysia.shared_state = '
+							+ JSON.stringify(shared_state) + ';'
+						+ '\n</script>';
 				render_();
 			}
 		}
