@@ -16,7 +16,7 @@
     "node": ">=0.10"
   },
   "dependencies": {
-    "handlebars": "~1.1.2",
+    "handlebars": "~2.0.0",
     "express": "~3.4.4",
     "marked": "~0.2.10",
     "minimist": "0.0.8",
