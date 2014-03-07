@@ -253,8 +253,7 @@ function render(shell, page, models, cookies, cb) {
 		try {
 			model_data.is_wysia = true;
 			for(var name in partials) {
-				var partial = partials[name];
-				hbs.registerPartial(name, partial);
+				hbs.registerPartial(name, partials[name]);
 			}
 			var html = hbs.compile(page_template)(model_data);
 			if(shell_template) {
