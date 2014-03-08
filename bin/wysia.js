@@ -103,6 +103,7 @@ function render(shell, page, models, cookies, cb) {
 	var page_template;
 	var model_data = {};
 	var partials = {};
+	var helpers = {};
 	(function load_shell() {
 		if(!shell) {
 			load_page();
@@ -177,7 +178,7 @@ function render(shell, page, models, cookies, cb) {
 	}
 	function merge_cookies() {
 		if(!cookies) {
-			load_partials();
+			load_helpers();
 			return;
 		}
 		try {
@@ -211,7 +212,43 @@ function render(shell, page, models, cookies, cb) {
 			cb(err);
 			return;
 		}
-		load_partials();
+		load_helpers();
+	}
+	function load_helpers() {
+		var glob_ = args['templates-dir'] + '/*.helper.js';
+		var helper_files;
+		glob (
+			glob_, function(err, files) {
+				if(err) {
+					cb(err);
+					return;
+				}
+				helper_files = files;
+				load_helper();
+			}
+		);
+		var load_count = 0;
+		function load_helper(err, name, helper) {
+			if(err) {
+				cb(err);
+				return;
+			}
+			if(helper) {
+				helpers[name] = helper;
+			}
+			if(load_count < helper_files.length) {
+				var path_ = helper_files[load_count++];
+				var name = path.basename(path_, '.helper.js');
+				fs.readFile (
+					path_, 'utf8', function(err, helper) {
+						load_helper(err, name, helper);
+					}
+				);
+			}
+			else {
+				load_partials();
+			}
+		}
 	}
 	function load_partials() {
 		var glob_ = args['templates-dir'] + '/*.partial.hbs';
@@ -258,6 +295,10 @@ function render(shell, page, models, cookies, cb) {
 	function render_() {
 		try {
 			model_data.is_wysia = true;
+			for(var name in helpers) {
+				var helper = new Function('return ' + helpers[name])();
+				hbs.registerHelper(name, helper);
+			}
 			for(var name in partials) {
 				hbs.registerPartial(name, partials[name]);
 			}
@@ -265,6 +306,9 @@ function render(shell, page, models, cookies, cb) {
 			if(shell_template) {
 				model_data.page_html = html;
 				html = hbs.compile(shell_template)(model_data);
+			}
+			for(var name in helpers) {
+				hbs.unregisterHelper(name);
 			}
 			for(var name in partials) {
 				hbs.unregisterPartial(name);
