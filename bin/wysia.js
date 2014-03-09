@@ -115,8 +115,9 @@ function render(shell, page, models, cookies, cb) {
 	var model_data = {};
 	var partials = {};
 	(function load_shell() {
+		var next_step = load_page;
 		if(!shell) {
-			load_page();
+			next_step();
 		}
 		else {
 			var file_name = shell + '.hbs';
@@ -128,12 +129,13 @@ function render(shell, page, models, cookies, cb) {
 						return;
 					}
 					shell_template = template;
-					load_page();
+					next_step();
 				}
 			);
 		}
 	})();
 	function load_page() {
+		var next_step = load_models;
 		var file_name = page + '.hbs';
 		var path = args['templates-dir'] + '/' + file_name;
 		fs.readFile (
@@ -143,11 +145,12 @@ function render(shell, page, models, cookies, cb) {
 					return;
 				}
 				page_template = template;
-				load_models();
+				next_step();
 			}
 		);
 	}
 	function load_models() {
+		var next_step = merge_shared_state;
 		var load_count = 0;
 		(function load_model(err, model) {
 			if(err) {
@@ -172,11 +175,12 @@ function render(shell, page, models, cookies, cb) {
 				fs.readFile(path, 'utf8', load_model);
 			}
 			else {
-				merge_shared_state();
+				next_step();
 			}
 		})();
 	}
 	function merge_shared_state() {
+		var next_step = merge_cookies;
 		try {
 			model_data = merge(model_data, shared_state);
 		}
@@ -184,11 +188,12 @@ function render(shell, page, models, cookies, cb) {
 			cb(err);
 			return;
 		}
-		merge_cookies();
+		next_step();
 	}
 	function merge_cookies() {
+		var next_step = load_partials();
 		if(!cookies) {
-			load_partials();
+			next_step();
 			return;
 		}
 		try {
@@ -222,9 +227,10 @@ function render(shell, page, models, cookies, cb) {
 			cb(err);
 			return;
 		}
-		load_partials();
+		next_step();
 	}
 	function load_partials() {
+		var next_step = render_;
 		var glob_ = args['templates-dir'] + '/*.partial.hbs';
 		var partial_files;
 		glob (
@@ -262,7 +268,7 @@ function render(shell, page, models, cookies, cb) {
 						+ '\nwindow.wysia.shared_state = '
 							+ JSON.stringify(shared_state) + ';'
 						+ '\n</script>';
-				render_();
+				next_step();
 			}
 		}
 	}
