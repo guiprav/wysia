@@ -296,7 +296,12 @@ function render(shell, page, models, cookies, cb) {
 		try {
 			model_data.is_wysia = true;
 			for(var name in helpers) {
-				var helper = new Function('return ' + helpers[name])();
+				var helper = new Function (
+					'var module = {};'
+					+ 'var exports = module.exports = {};'
+					+ helpers[name] + ';'
+					+ 'return module.exports;'
+				)();
 				hbs.registerHelper(name, helper);
 			}
 			for(var name in partials) {
