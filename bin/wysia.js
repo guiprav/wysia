@@ -123,21 +123,7 @@ app.use (
 		next();
 	}
 );
-var shared_state = (function() {
-	try {
-		var path = args['templates-dir']
-				+ '/' + args['wysia-subdir']
-				+ '/initial-shared-state.json';
-		return JSON.parse(fs.readFileSync(path, 'utf8'));
-	}
-	catch(err) {
-		if(err.code !== 'ENOENT') {
-			console.error("Error loading initial shared state:", err);
-			console.log("Starting with empty shared_state.");
-		}
-	}
-	return {};
-})();
+var shared_state = user_models['initial-shared-state'] || {};
 function render(shell, page, models, cookies, cb) {
 	var model_data = {};
 	(function merge_models() {
