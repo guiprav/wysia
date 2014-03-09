@@ -21,32 +21,13 @@ var vm = require('vm');
 var fs = require('fs');
 var glob = require('glob');
 var path = require('path');
+var module_resolver = require('resolve');
 var http = require('http');
 var express = require('express');
 var hbs = require('handlebars');
 var marked = require('marked');
 var args = require('../src/arguments');
 var merge = require('../src/merge');
-var wysia_js = (function() {
-	var path_ = args['templates-dir']
-			+ '/' + args['wysia-subdir']
-			+ '/wysia.js';
-	if(!fs.existsSync(path_)) {
-		fs.writeFileSync (
-			path_,
-			'module.exports.compile_helper = function(code) {'
-				+ '\n\treturn new Function(code)();'
-			+ '\n};'
-			+ '\n'
-		);
-	}
-	var wysia_js = require(path.resolve('.', path_));
-	if(!wysia_js || typeof(wysia_js.compile_helper) !== 'function') {
-		console.error("Your wysia.js file hasn't exported required function 'compile_helper'.");
-		process.exit(-1);
-	}
-	return wysia_js;
-})();
 hbs.registerHelper (
 	'markdown', function(text) {
 		if(!text) {
@@ -118,12 +99,12 @@ var shared_state = (function() {
 	}
 	return {};
 })();
-render.hbs_helpers_cache = {};
 function render(shell, page, models, cookies, cb) {
 	var shell_template;
 	var page_template;
 	var model_data = {};
 	var partials = {};
+	var helpers = {};
 	(function load_shell() {
 		if(!shell) {
 			load_page();
@@ -248,25 +229,55 @@ function render(shell, page, models, cookies, cb) {
 			}
 		);
 		var load_count = 0;
-		function load_helper(err, name, helper) {
-			if(err) {
-				cb(err);
-				return;
-			}
-			if(helper) {
-				helpers[name] = helper;
-			}
+		function load_helper() {
 			if(load_count < helper_files.length) {
 				var path_ = helper_files[load_count++];
 				var name = path.basename(path_, '.helper.js');
 				fs.readFile (
-					path_, 'utf8', function(err, helper) {
-						load_helper(err, name, helper);
+					path_, 'utf8', function(err, helper_src) {
+						compile_helper(err, name, helper_src);
 					}
 				);
 			}
 			else {
 				load_partials();
+			}
+			function compile_helper(err, name, helper_src) {
+				if(err) {
+					cb(err);
+					return;
+				}
+				var helper_module = {};
+				var helper_exports = helper_module.exports = {};
+				var helper = new Function (
+					'require'
+					, 'module',
+					, 'exports'
+					, (
+						helpers[name] + ';'
+						+ 'return module.exports;'
+					)
+				) (
+					function(module) {
+						var module_basedir = path.resolve (
+							args['templates-dir'], args['wysia-subdir']
+						);
+						var module_path = (function() {
+							var path_cache = helper_modules_path_cache;
+							if(!path_cache[module]) {
+								path_cache[module] = module_resolver.sync (
+									module, { basedir: module_basedir }
+								);
+							}
+							return path_cache[module];
+						})();
+						return require (
+							module_resolver.sync(module, { basedir: module_basedir })
+						);
+					}
+					, helper_module
+					, helper_exports
+				);
 			}
 		}
 	}
@@ -316,13 +327,7 @@ function render(shell, page, models, cookies, cb) {
 		try {
 			model_data.is_wysia = true;
 			for(var name in helpers) {
-				var helper = new Function (
-					'var module = {};'
-					+ 'var exports = module.exports = {};'
-					+ helpers[name] + ';'
-					+ 'return module.exports;'
-				)();
-				hbs.registerHelper(name, helper);
+				hbs.registerHelper(name, helpers[name]);
 			}
 			for(var name in partials) {
 				hbs.registerPartial(name, partials[name]);
