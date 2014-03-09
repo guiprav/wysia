@@ -27,6 +27,8 @@ var hbs = require('handlebars');
 var marked = require('marked');
 var args = require('../src/arguments');
 var merge = require('../src/merge');
+var templates_dir = args['templates-dir'];
+var wysia_subdir = path.resolve(templates_dir, args['wysia-subdir']);
 hbs.registerHelper (
 	'markdown', function(text) {
 		if(!text) {
@@ -46,13 +48,40 @@ hbs.registerHelper (
 	}
 );
 (function load_user_helpers() {
-	var path_ = path.resolve(args['templates-dir'], args['wysia-subdir']);
-	var files = glob.sync(path_ + '/*.helper.js');
+	var files = glob.sync(templates_dir + '/*.helper.js');
 	files.forEach (
 		function(file) {
 			var name = path.basename(file, '.helper.js');
-			var helper = require(file);
+			var helper = require(path.resolve(file));
 			hbs.registerHelper(name, helper);
+		}
+	);
+})();
+var user_templates = {};
+(function load_user_templates_and_partials() {
+	var files = glob.sync(templates_dir + '/*.hbs');
+	files.forEach (
+		function(file) {
+			var template_name = path.basename(file, '.hbs');
+			var template = fs.readFileSync(file, 'utf8');
+			if(path.extname(file) === '.partial') {
+				var partial_name = path.basename(template_name, '.partial');
+				hbs.registerPartial(partial_name, template);
+			}
+			else {
+				user_templates[template_name] = template;
+			}
+		}
+	);
+})();
+var user_models = {};
+(function load_user_models() {
+	var files = glob.sync(wysia_subdir + '/*.json');
+	files.forEach (
+		function(file) {
+			var name = path.basename(file, '.json');
+			var model = JSON.parse(fs.readFileSync(file, 'utf8'));
+			user_models[name] = model;
 		}
 	);
 })();
@@ -110,87 +139,39 @@ var shared_state = (function() {
 	return {};
 })();
 function render(shell, page, models, cookies, cb) {
-	var shell_template;
-	var page_template;
 	var model_data = {};
-	var partials = {};
-	(function load_shell() {
-		var next_step = load_page;
-		if(!shell) {
-			next_step();
-			return;
+	(function merge_models() {
+		var next = merge_shared_state;
+		try {
+			models.forEach (
+				function(name) {
+					var model = user_models[name];
+					if(!model) {
+						var err = new Error("Model '" + name + "' does not exist.");
+						err.not_found = true;
+						throw err;
+					}
+					model_data = merge(model_data, user_models[name]);
+				}
+			);
+			next();
 		}
-		var file_name = shell + '.hbs';
-		var path = args['templates-dir'] + '/' + file_name;
-		fs.readFile (
-			path, 'utf8', function(err, template) {
-				if(err) {
-					cb(err);
-					return;
-				}
-				shell_template = template;
-				next_step();
-			}
-		);
+		catch(err) {
+			cb(err);
+		}
 	})();
-	function load_page() {
-		var next_step = load_models;
-		var file_name = page + '.hbs';
-		var path = args['templates-dir'] + '/' + file_name;
-		fs.readFile (
-			path, 'utf8', function(err, template) {
-				if(err) {
-					cb(err);
-					return;
-				}
-				page_template = template;
-				next_step();
-			}
-		);
-	}
-	function load_models() {
-		var next_step = merge_shared_state;
-		var load_count = 0;
-		(function load_model(err, model) {
-			if(err) {
-				cb(err);
-				return;
-			}
-			if(model) {
-				try {
-					var loaded_model = JSON.parse(model);
-					model_data = merge(model_data, loaded_model);
-				}
-				catch(err) {
-					cb(err);
-					return;
-				}
-			}
-			if(load_count < models.length) {
-				var file_name = models[load_count++] + '.json';
-				var path = args['templates-dir']
-						+ '/' + args['wysia-subdir']
-						+ '/' + file_name;
-				fs.readFile(path, 'utf8', load_model);
-			}
-			else {
-				next_step();
-			}
-		})();
-	}
 	function merge_shared_state() {
 		var next_step = merge_cookies;
 		try {
 			model_data = merge(model_data, shared_state);
+			next_step();
 		}
 		catch(err) {
 			cb(err);
-			return;
 		}
-		next_step();
 	}
 	function merge_cookies() {
-		var next_step = load_partials();
+		var next_step = render_;
 		if(!cookies) {
 			next_step();
 			return;
@@ -221,69 +202,31 @@ function render(shell, page, models, cookies, cb) {
 				})(cookies[key]);
 			}
 			model_data = merge(model_data, cookies);
+			next_step();
 		}
 		catch(err) {
 			cb(err);
-			return;
-		}
-		next_step();
-	}
-	function load_partials() {
-		var next_step = render_;
-		var glob_ = args['templates-dir'] + '/*.partial.hbs';
-		var partial_files;
-		glob (
-			glob_, function(err, files) {
-				if(err) {
-					cb(err);
-					return;
-				}
-				partial_files = files;
-				load_partial();
-			}
-		);
-		var load_count = 0;
-		function load_partial(err, name, partial) {
-			if(err) {
-				cb(err);
-				return;
-			}
-			if(partial) {
-				partials[name] = partial;
-			}
-			if(load_count < partial_files.length) {
-				var path_ = partial_files[load_count++];
-				var name = path.basename(path_, '.partial.hbs');
-				fs.readFile (
-					path_, 'utf8', function(err, partial) {
-						load_partial(err, name, partial);
-					}
-				);
-			}
-			else {
-				partials['wysia-shared-state'] =
-						'<script>'
-						+ '\nwindow.wysia = window.wysia || {};'
-						+ '\nwindow.wysia.shared_state = '
-							+ JSON.stringify(shared_state) + ';'
-						+ '\n</script>';
-				next_step();
-			}
 		}
 	}
 	function render_() {
 		try {
 			model_data.is_wysia = true;
-			for(var name in partials) {
-				hbs.registerPartial(name, partials[name]);
+			var page_template = user_templates[page];
+			if(!page_template) {
+				var err = new Error("Template '" + page + "' does not exist.");
+				err.not_found = true;
+				throw err;
 			}
 			var html = hbs.compile(page_template)(model_data);
-			if(shell_template) {
+			if(shell) {
+				var shell_template = user_templates[shell];
+				if(!shell_template) {
+					var err = new Error("Template '" + shell + "' does not exist.");
+					err.not_found = true;
+					throw err;
+				}
 				model_data.page_html = html;
 				html = hbs.compile(shell_template)(model_data);
-			}
-			for(var name in partials) {
-				hbs.unregisterPartial(name);
 			}
 			cb(null, html);
 		}
