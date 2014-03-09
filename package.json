@@ -5,7 +5,7 @@
   "author": "Guilherme Vieira <super.driver.512@gmail.com>",
   "description": "What you see is awesome: HTML template + mock data viewer.",
   "bin": {
-    "wysia": "./bin/wysia.js"
+    "wysia": "./bin/forever-wysia.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
     "express": "~3.4.4",
     "marked": "~0.2.10",
     "minimist": "0.0.8",
-    "glob": "~3.2.9"
+    "glob": "~3.2.9",
+    "forever": "^0.10.11"
   }
 }
