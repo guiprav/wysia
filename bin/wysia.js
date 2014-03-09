@@ -64,7 +64,7 @@ var user_templates = {};
 		function(file) {
 			var template_name = path.basename(file, '.hbs');
 			var template = fs.readFileSync(file, 'utf8');
-			if(path.extname(file) === '.partial') {
+			if(path.extname(template_name) === '.partial') {
 				var partial_name = path.basename(template_name, '.partial');
 				hbs.registerPartial(partial_name, template);
 			}
