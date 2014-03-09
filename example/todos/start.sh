@@ -1,1 +1,1 @@
-node ../../bin/wysia.js
+node ../../bin/forever-wysia.js
