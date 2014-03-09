@@ -118,21 +118,20 @@ function render(shell, page, models, cookies, cb) {
 		var next_step = load_page;
 		if(!shell) {
 			next_step();
+			return;
 		}
-		else {
-			var file_name = shell + '.hbs';
-			var path = args['templates-dir'] + '/' + file_name;
-			fs.readFile (
-				path, 'utf8', function(err, template) {
-					if(err) {
-						cb(err);
-						return;
-					}
-					shell_template = template;
-					next_step();
+		var file_name = shell + '.hbs';
+		var path = args['templates-dir'] + '/' + file_name;
+		fs.readFile (
+			path, 'utf8', function(err, template) {
+				if(err) {
+					cb(err);
+					return;
 				}
-			);
-		}
+				shell_template = template;
+				next_step();
+			}
+		);
 	})();
 	function load_page() {
 		var next_step = load_models;
