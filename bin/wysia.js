@@ -27,6 +27,26 @@ var hbs = require('handlebars');
 var marked = require('marked');
 var args = require('../src/arguments');
 var merge = require('../src/merge');
+var wysia_js = (function() {
+	var path_ = args['templates-dir']
+			+ '/' + args['wysia-subdir']
+			+ '/wysia.js';
+	if(!fs.existsSync(path_)) {
+		fs.writeFileSync (
+			path_,
+			'module.exports.compile_helper = function(code) {'
+				+ '\n\treturn new Function(code)();'
+			+ '\n};'
+			+ '\n'
+		);
+	}
+	var wysia_js = require(path.resolve('.', path_));
+	if(!wysia_js || typeof(wysia_js.compile_helper) !== 'function') {
+		console.error("Your wysia.js file hasn't exported required function 'compile_helper'.");
+		process.exit(-1);
+	}
+	return wysia_js;
+})();
 hbs.registerHelper (
 	'markdown', function(text) {
 		if(!text) {
@@ -98,12 +118,12 @@ var shared_state = (function() {
 	}
 	return {};
 })();
+render.hbs_helpers_cache = {};
 function render(shell, page, models, cookies, cb) {
 	var shell_template;
 	var page_template;
 	var model_data = {};
 	var partials = {};
-	var helpers = {};
 	(function load_shell() {
 		if(!shell) {
 			load_page();
