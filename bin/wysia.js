@@ -45,6 +45,17 @@ hbs.registerHelper (
 		);
 	}
 );
+(function load_user_helpers() {
+	var path_ = path.resolve(args['templates-dir'], args['wysia-subdir']);
+	var files = glob.sync(path_ + '/*.helper.js');
+	files.forEach (
+		function(file) {
+			var name = path.basename(file, '.helper.js');
+			var helper = require(file);
+			hbs.registerHelper(name, helper);
+		}
+	);
+})();
 var app = express();
 if(app.get('env') === 'development') {
 	app.use(express.logger());
