@@ -27,8 +27,9 @@ var hbs = require('handlebars');
 var marked = require('marked');
 var args = require('../src/arguments');
 var merge = require('../src/merge');
-var templates_dir = args['templates-dir'];
+var templates_dir = path.resolve(args['templates-dir']);
 var wysia_subdir = path.resolve(templates_dir, args['wysia-subdir']);
+var public_subdir = path.resolve(templates_dir, args['public-subdir']);
 hbs.registerHelper (
 	'markdown', function(text) {
 		if(!text) {
@@ -90,11 +91,7 @@ if(app.get('env') === 'development') {
 	app.use(express.logger());
 }
 app.use(express.static(__dirname + '/../public'));
-app.use (
-	express.static (
-		path.resolve(process.cwd(), args['templates-dir'])
-	)
-);
+app.use(express.static(public_subdir));
 app.use(express.cookieParser());
 app.use(express.bodyParser());
 app.use (
