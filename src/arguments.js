@@ -32,9 +32,9 @@ function print_usage() {
 	log("Options:");
 	log("    -w, --wysia-subdir: Subdirectory where JSON models are stored.");
 	log("        Default: none (models loaded from templates-dir)");
-	log("    --public-subdir: Subdirectory where static assets (images, scripts, stylesheets, etc.) are stored.");
+	log("    -p, --public-subdir: Subdirectory where static assets (images, scripts, stylesheets, etc.) are stored.");
 	log("        Default: none (assets served from templates-dir)");
-	log("    -p, --port: Listening port to serve from.");
+	log("    --port: Listening port to serve from.");
 	log("        Default:", defaults.port);
 	log();
 	process.exit(0);
@@ -75,13 +75,13 @@ for(var name in parsed) {
 			ensure_not_boolean('-w / --wysia-subdir', value);
 			args['wysia-subdir'] = value;
 			break;
+		case 'p':
 		case 'public-subdir':
-			ensure_not_boolean('--public-subdir', value);
+			ensure_not_boolean('-p / --public-subdir', value);
 			args['public-subdir'] = value;
 			break;
-		case 'p':
 		case 'port':
-			ensure_not_boolean('-p / --port', value);
+			ensure_not_boolean('--port', value);
 			args.port = value;
 			break;
 	}
