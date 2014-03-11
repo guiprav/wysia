@@ -52,7 +52,7 @@ hbs.registerHelper (
 	files.forEach (
 		function(file) {
 			var name = path.basename(file, '.helper.js');
-			var helper = require(path.resolve(file));
+			var helper = require(path.resolve(file)).bind(null, hbs);
 			hbs.registerHelper(name, helper);
 		}
 	);
