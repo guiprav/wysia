@@ -156,14 +156,15 @@ function execute_copies(node, source) {
 		return node;
 	}
 	var keys = Object.keys(node);
-	// TODO: Refactor control flow (invert branches.)
-	if(keys[0] !== '$copy') {
+	if(keys[0] === '$copy') {
+		return traverse_object(source, node[keys[0]]);
+	}
+	else {
 		for(var key in node) {
 			node[key] = execute_copies(node[key], source);
 		}
 		return node;
 	}
-	return traverse_object(source, node[keys[0]]);
 }
 function render(shell, page, models, cookies, query, cb) {
 	var model_data = {};
