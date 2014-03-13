@@ -121,7 +121,51 @@ app.use (
 	}
 );
 var shared_state = user_models['initial-shared-state'] || {};
-function render(shell, page, models, cookies, cb) {
+function traverse_object(object, path, create) {
+	return path.split('.').reduce (
+		function(current_node, next_property) {
+			var next_value = current_node[next_property];
+			if(create && next_value === undefined) {
+				next_value = current_node[next_property] = {};
+			}
+			return next_value;
+		}
+		, object
+	);
+}
+function traverse_object_to_parent(object, path, create) {
+	var last_dot_index = path.lastIndexOf('.');
+	if(last_dot_index === -1) {
+		return object;
+	}
+	else {
+		return traverse_object(object, path.slice(0, last_dot_index), create);
+	}
+}
+function get_path_tip(path_) {
+	var tip = path.extname(path_).slice(1);
+	if(tip !== '') {
+		return tip;
+	}
+	else {
+		return path_;
+	}
+}
+function execute_copies(node, source) {
+	if(typeof(node) !== 'object') {
+		return node;
+	}
+	var keys = Object.keys(node);
+	// TODO: Refactor control flow (invert branches.)
+	if(keys[0] !== '$copy') {
+		for(var key in node) {
+			node[key] = execute_copies(node[key], source);
+		}
+		return node;
+	}
+	return traverse_object(source, node[keys[0]]);
+}
+function render(shell, page, models, cookies, query, cb) {
 	var model_data = {};
 	(function merge_models() {
 		var next = merge_shared_state;
@@ -154,37 +198,41 @@ function render(shell, page, models, cookies, cb) {
 		}
 	}
 	function merge_cookies() {
-		var next_step = render_;
+		var next_step = merge_query;
 		if(!cookies) {
 			next_step();
 			return;
 		}
 		try {
 			for(var key in cookies) {
-				cookies[key] = (function execute_copies(node) {
-					if(typeof(node) !== 'object') {
-						return node;
-					}
-					var keys = Object.keys(node);
-					if(keys[0] !== '$copy') {
-						for(var key in node) {
-							node[key] = execute_copies(node[key]);
-						}
-						return node;
-					}
-					var path = node[keys[0]].split('.');
-					return path.reduce (
-						function(current_path_node, next_path_node_name) {
-							if(typeof(current_path_node) !== 'object') {
-								return undefined;
-							}
-							return current_path_node[next_path_node_name];
-						}
-						, model_data
-					);
-				})(cookies[key]);
+				cookies[key] = execute_copies(cookies[key], model_data);
 			}
 			model_data = merge(model_data, cookies);
+			next_step();
+		}
+		catch(err) {
+			cb(err);
+		}
+	}
+	function merge_query() {
+		var next_step = render_;
+		try {
+			var query_ = {};
+			for(var key in query) {
+				var key_path_parent = traverse_object_to_parent(query_, key, true);
+				var key_path_tip = get_path_tip(key);
+				var value_path_value = (function() {
+					try {
+						return traverse_object(model_data, query[key]);
+					}
+					catch(err) {
+						err.not_found = true;
+						throw err;
+					}
+				})();
+				key_path_parent[key_path_tip] = merge(key_path_parent[key_path_tip], value_path_value);
+			}
+			model_data = merge(model_data, query_);
 			next_step();
 		}
 		catch(err) {
@@ -235,7 +283,7 @@ function get_handler(req, res) {
 		}
 	}
 	render (
-		shell, page, models, cookies, function(err, html) {
+		shell, page, models, cookies, req.query, function(err, html) {
 			if(err) {
 				res.send_error(err);
 				return;

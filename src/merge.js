@@ -20,6 +20,7 @@ function merge(left, right) {
 	var left_type = merge_data_type(left);
 	var right_type = merge_data_type(right);
 	var combination = left_type + '<-' + right_type;
+	// TODO: Do not replace anything by undefined.
 	var fn_tab = {
 		'object<-object': merge_objects
 		, 'array<-array': merge_arrays
