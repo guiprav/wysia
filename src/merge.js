@@ -19,18 +19,29 @@
 function merge(left, right) {
 	var left_type = merge_data_type(left);
 	var right_type = merge_data_type(right);
-	var combination = left_type + '<-' + right_type;
-	// TODO: Do not replace anything by undefined.
+	var combinations = [
+		left_type + '<-' + right_type
+		, '*<-' + right_type
+		, left_type + '<-*'
+	];
 	var fn_tab = {
 		'object<-object': merge_objects
 		, 'array<-array': merge_arrays
+		, '*<-undefined': keep_left
 	};
-	if(fn_tab[combination] === undefined) {
-		return replace_data(left, right);
+	for(var i = 0; i < combinations.length; ++i) {
+		var fn = fn_tab[combinations[i]];
+		if(fn) {
+			return fn(left, right);
+		}
 	}
-	return fn_tab[combination](left, right);
+	return replace_data(left, right);
 }
 function merge_data_type(value) {
+	if(value === undefined) {
+		return 'undefined';
+	}
+	// TODO: Review this conditional.
 	if(!value && value !== false) {
 		return 'data';
 	}
@@ -55,6 +66,9 @@ function merge_objects(left, right) {
 }
 function merge_arrays(left, right) {
 	return [].concat(left, right);
+}
+function keep_left(left, right) {
+	return left;
 }
 function replace_data(left, right) {
 	return right;
