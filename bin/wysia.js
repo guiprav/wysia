@@ -108,7 +108,9 @@ var templates_js = (function() {
 	for(var name in user_partials) {
 		js += '\nHandlebars.registerPartial ('
 				+ '\n' + JSON.stringify(name)
-				+ '\n, ' + JSON.stringify(user_partials[name])
+				+ '\n, Handlebars.template ('
+				+ '\n' + hbs.precompile(user_partials[name])
+				+ '\n)'
 				+ '\n);';
 	}
 	js += '\nHandlebars.templates = {};'
