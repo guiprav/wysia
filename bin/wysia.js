@@ -48,6 +48,7 @@ hbs.registerHelper (
 		);
 	}
 );
+var user_helpers = {};
 (function load_user_helpers() {
 	var files = glob.sync(templates_dir + '/*.helper.js');
 	files.forEach (
@@ -55,9 +56,11 @@ hbs.registerHelper (
 			var name = path.basename(file, '.helper.js');
 			var helper = require(path.resolve(file)).bind(null, hbs);
 			hbs.registerHelper(name, helper);
+			user_helpers[name] = fs.readFileSync(file, 'utf8');
 		}
 	);
 })();
+var user_partials = {};
 var user_templates = {};
 (function load_user_templates_and_partials() {
 	var files = glob.sync(templates_dir + '/*.hbs');
@@ -68,12 +71,53 @@ var user_templates = {};
 			if(path.extname(template_name) === '.partial') {
 				var partial_name = path.basename(template_name, '.partial');
 				hbs.registerPartial(partial_name, template);
+				user_partials[partial_name] = template;
 			}
 			else {
 				user_templates[template_name] = template;
 			}
 		}
 	);
+})();
+var templates_js = (function() {
+	var js = fs.readFileSync (
+		__dirname + '/../node_modules/handlebars/dist/handlebars.runtime.js', 'utf8'
+	);
+	js += '\n// END OF HANDLEBARS SOURCE CODE, START OF USER CODE:'
+			+ '\n(function() {'
+			+ '\nvar helpers = {};';
+	for(var name in user_helpers) {
+		js += 'helpers[' + JSON.stringify(name) + '] = function() {'
+				+ '\nvar exports = (function() {'
+				+ '\nvar module = {};'
+				+ '\nvar exports = module.exports = {};'
+				+ '\n' + user_helpers[name]
+				+ '\nreturn module.exports;'
+				+ '\n})();'
+				+ '\nhelpers[' + JSON.stringify(name) + '] = exports;'
+				+ '\nreturn exports.apply(null, arguments);'
+				+ '\n};'
+				+ '\nHandlebars.registerHelper ('
+				+ '\n' + JSON.stringify(name) + ', function() {'
+				+ '\nreturn helpers[' + JSON.stringify(name) + '].apply(null, arguments);'
+				+ '\n}'
+				+ '\n);';
+	}
+	js += '\n}'
+			+ '\n)();';
+	for(var name in user_partials) {
+		js += '\nHandlebars.registerPartial ('
+				+ '\n' + JSON.stringify(name)
+				+ '\n, ' + JSON.stringify(user_partials[name])
+				+ '\n);';
+	}
+	js += '\nHandlebars.templates = {};'
+	for(var name in user_templates) {
+		js += '\nHandlebars.templates["' + name + '"] = Handlebars.template ('
+				+ '\n' + hbs.precompile(user_templates[name])
+				+ '\n);';
+	}
+	return js;
 })();
 var user_models = {};
 (function load_user_models() {
@@ -90,6 +134,13 @@ var app = express();
 if(app.get('env') === 'development') {
 	app.use(express.logger());
 }
+app.get (
+	'/templates.js', function(req, res) {
+		// TODO: Stream this data if it's too long?
+		res.set('Content-Type', 'application/javascript');
+		res.send(templates_js);
+	}
+);
 app.use(express.static(__dirname + '/../public'));
 app.use(express.static(public_subdir));
 app.use(express.cookieParser());
