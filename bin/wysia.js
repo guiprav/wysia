@@ -105,16 +105,22 @@ var templates_js = (function() {
 	}
 	js += '\n}'
 			+ '\n)();';
+	js += '\nHandlebars.templates = {};'
 	for(var name in user_partials) {
+		var precompiled = hbs.precompile(user_partials[name]);
 		js += '\nHandlebars.registerPartial ('
 				+ '\n' + JSON.stringify(name)
 				+ '\n, Handlebars.template ('
-				+ '\n' + hbs.precompile(user_partials[name])
+				+ '\n' + precompiled
 				+ '\n)'
+				+ '\n);'
+				+ '\nHandlebars.templates[' + JSON.stringify(name + '.partial') + '] ='
+				+ '\nHandlebars.template ('
+				+ '\n' + precompiled
 				+ '\n);';
 	}
-	js += '\nHandlebars.templates = {};'
 	for(var name in user_templates) {
+		// TODO: Use JSON.stringify(name) here!
 		js += '\nHandlebars.templates["' + name + '"] = Handlebars.template ('
 				+ '\n' + hbs.precompile(user_templates[name])
 				+ '\n);';
