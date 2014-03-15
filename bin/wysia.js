@@ -134,6 +134,10 @@ var app = express();
 if(app.get('env') === 'development') {
 	app.use(express.logger());
 }
+app.use(express.static(__dirname + '/../public'));
+app.use(express.static(public_subdir));
+app.use(express.cookieParser());
+app.use(express.bodyParser());
 app.get (
 	'/templates.js', function(req, res) {
 		// TODO: Stream this data if it's too long?
@@ -141,10 +145,6 @@ app.get (
 		res.send(templates_js);
 	}
 );
-app.use(express.static(__dirname + '/../public'));
-app.use(express.static(public_subdir));
-app.use(express.cookieParser());
-app.use(express.bodyParser());
 app.use (
 	function(req, res, next) {
 		res.send_error = function(err) {
@@ -168,6 +168,7 @@ app.use (
 				console.error(err.stack);
 			}
 		};
+		console.log('res.send_error set:', res.send_error);
 		next();
 	}
 );
@@ -337,6 +338,7 @@ function get_handler(req, res) {
 	render (
 		shell, page, models, cookies, req.query, function(err, html) {
 			if(err) {
+				console.log(res.send_error);
 				res.send_error(err);
 				return;
 			}
