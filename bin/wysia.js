@@ -120,8 +120,7 @@ var templates_js = (function() {
 				+ '\n);';
 	}
 	for(var name in user_templates) {
-		// TODO: Use JSON.stringify(name) here!
-		js += '\nHandlebars.templates["' + name + '"] = Handlebars.template ('
+		js += '\nHandlebars.templates[' + JSON.stringify(name) + '] = Handlebars.template ('
 				+ '\n' + hbs.precompile(user_templates[name])
 				+ '\n);';
 	}
