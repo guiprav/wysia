@@ -1,11 +1,11 @@
 Wysia
 =====
 
-Wysia ("What you see is awesome!") is in essence an HTML template + mock data viewer. A more obnoxious description might be a functional prototyping platform for front end development.
+Wysia ("What you see is awesome!") is in essence an HTML template + mock data viewer.
 
 It is meant to showcase web designs with the least amount of duplication by using the same templates used in the final web site or application.
 
-It can also be used together with PhantomJS in order to comprehensively unit test your web site's appearance -- taking photos of elements and comparing them to saved ones -- as well as client-side behavior if you isolate mock logic from production logic.
+It can also be used together with PhantomJS in order to comprehensively unit test your web site's appearance -- taking photos of elements and comparing them to saved ones.
 
 It will start a server that serves all Handlebars templates in the current directory backed by the specified JSON files.
 
@@ -31,32 +31,6 @@ Usage
 			Default: none (models loaded from templates-dir)
 		-p, --port: Listening port to serve from.
 			Default: 3000
-
-Shared state and cookies!
--------------------------
-
-Besides JSON models, a shared state among site visitors is also merged in as template data, as well as browser cookies.
-
-Shared state can be changed via POST requests, which allow site visitors some level of interaction. Such shared state is initialized to an empty JavaScript object on server start, or to the contents of `{templates-dir}/{wysia-subdir}/initial-shared-state.json`, if present.
-
-Browser cookies are merged lastly to allow for mock authentication, as well as other things up to your imagination.
-
-Shared state can be accessed on the client-side if the page templates include the `wysia-shared-state` partial. This produces a script tag which creates a global `wysia.shared_state` object containing the shared state used to generate that page.
-
-How POST requests work?
------------------------
-
-In order for POST requests to manipulate shared state, a field called `$state-update-logic` is used. The field should contain JavaScript code to be executed by the server. It is sandboxed and can only access shared state, cookies, and the rest of form data. E.g.:
-
-    <input type="hidden" name="$state-update-logic" value='
-		state.tasks.push(form_data.task);
-	'>
-	<input type="text" name="task" placeholder="Task description.">
-	<input type="submit" value="Add task.">
-
-Wysia will detect the presence of `$state-update-logic` and execute the code, which in turn pushes the task description from form field `'task'` value into the `tasks` shared state array.
-
-__Note__: All site visitors have unrestricted access to shared state like that. For prototyping this is very handy, but bear in mind that in a production setting that's just catastrophic.
 
 Copying
 -------
