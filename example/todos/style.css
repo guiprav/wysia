@@ -1,7 +1,0 @@
-form[action-name="add-task"] input[type="submit"] {
-	position: absolute;
-	left: -9999px;
-}
-form[action-name="clear-task"] {
-	display: inline;
-}
