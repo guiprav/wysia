@@ -60,7 +60,12 @@ function get_handler(req, res) {
 			this.merge_data();
 		}
 		, merge_data: function() {
-			this.data = this.data.reduce(merge);
+			if(this.data.length === 0) {
+				this.data = {};
+			}
+			else {
+				this.data = this.data.reduce(merge);
+			}
 			this.load_helpers();
 		}
 		, load_helpers: function() {
