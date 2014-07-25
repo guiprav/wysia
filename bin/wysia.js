@@ -41,6 +41,12 @@ function get_handler(req, res) {
 			else {
 				data_files = data_files_param.split(',');
 			}
+			if(data_files.indexOf(req.params.page) === -1 && fs.existsSync(req.params.page + '.json')) {
+				data_files.unshift(req.params.page);
+			}
+			if(data_files.indexOf('global') && fs.existsSync('global.json')) {
+				data_files.unshift('global');
+			}
 			this.data = data_files.map (
 				function(data_file_name) {
 					return JSON.parse (
