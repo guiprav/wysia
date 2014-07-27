@@ -98,8 +98,15 @@ function get_handler(req, res) {
 			this.render_page();
 		}
 		, render_page: function() {
+			var root = this.data;
 			var helpers = this.helpers;
 			var partials = this.partials;
+			helpers.partial = function(name, options) {
+				var partial = partials[name];
+				var data = Object.create(options.hash);
+				data.root = root;
+				return new hbs.SafeString(hbs.compile(partial)(data));
+			};
 			Object.keys(helpers).forEach (
 				function(helper_name) {
 					hbs.registerHelper(helper_name, helpers[helper_name]);
@@ -110,7 +117,7 @@ function get_handler(req, res) {
 					hbs.registerPartial(partial_name, partials[partial_name]);
 				}
 			);
-			this.page_html = hbs.compile(this.page_template)(this.data);
+			this.page_html = hbs.compile(this.page_template)(root);
 			Object.keys(helpers).forEach (
 				function(helper_name) {
 					hbs.unregisterHelper(helper_name);
