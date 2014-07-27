@@ -7,6 +7,9 @@
   "bin": {
     "wysia": "./bin/wysia.js"
   },
+  "scripts": {
+    "start": "./bin/wysia.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/n2liquid/wysia.git"
