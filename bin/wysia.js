@@ -30,6 +30,10 @@ var state_machine = require('../src/state-machine');
 var templates_dir = path.resolve(args['templates-dir']);
 var wysia_subdir = path.resolve(templates_dir, args['wysia-subdir']);
 var public_subdir = path.resolve(templates_dir, args['public-subdir']);
+function get_index_handler(req, res) {
+	req.params.page = 'index';
+	get_handler(req, res);
+}
 function get_handler(req, res) {
 	state_machine ({
 		load_data_files: function() {
@@ -145,6 +149,7 @@ function post_handler(req, res) {
 	res.redirect(req.url);
 }
 app.use(express.static(public_subdir));
+app.get('/', get_index_handler);
 app.get('/:page/:data_files', get_handler);
 app.get('/:page', get_handler);
 app.post('/:page/:data_files', post_handler);
