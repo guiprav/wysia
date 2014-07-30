@@ -73,8 +73,14 @@ function get_handler(req, res) {
 			glob.sync(path.resolve(templates_dir, '*.helper.js')).forEach (
 				function(file) {
 					var name = path.basename(file, '.helper.js');
-					var helper = new Function(fs.readFileSync(file, { encoding: 'utf8' }));
-					helpers[name] = helper;
+					var helper_module = { exports: {} };
+					new Function (
+						'module'
+						, fs.readFileSync(file, { encoding: 'utf8' })
+					) (
+						helper_module
+					);
+					helpers[name] = helper_module.exports;
 				}
 			);
 			this.load_partials();
