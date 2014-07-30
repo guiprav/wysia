@@ -20,7 +20,7 @@ var defaults = {};
 defaults['templates-dir'] = '.';
 defaults['wysia-subdir'] = '.';
 defaults['public-subdir'] = '.';
-defaults.port = 3000;
+defaults.port = process.env.PORT || 3000;
 var parsed = require('minimist')(process.argv.slice(2));
 var log = console.log;
 function print_usage() {
@@ -35,7 +35,7 @@ function print_usage() {
 	log("    -p, --public-subdir: Subdirectory where static assets (images, scripts, stylesheets, etc.) are stored.");
 	log("        Default: none (assets served from templates-dir)");
 	log("    --port: Listening port to serve from.");
-	log("        Default:", defaults.port);
+	log("        Default:", defaults.port, "(or process.env.PORT, if set.)");
 	log();
 	process.exit(0);
 }
