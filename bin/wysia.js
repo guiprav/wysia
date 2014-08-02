@@ -111,10 +111,17 @@ function get_handler(req, res) {
 			var root = this.data;
 			var helpers = this.helpers;
 			var partials = this.partials;
-			helpers.partial = function(name, options) {
+			helpers.partial = function(name) {
 				var partial = partials[name];
-				var data = Object.create(options.hash);
+				var options = arguments[arguments.length - 1];
+				var data;
+				var args = [];
+				if(arguments.length > 2) {
+					args = [].slice.call(arguments, 1, -1);
+				}
+				data = Object.create(options.hash);
 				data.root = root;
+				data.arguments = args;
 				return new hbs.SafeString(hbs.compile(partial)(data));
 			};
 			Object.keys(helpers).forEach (
