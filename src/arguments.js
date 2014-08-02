@@ -30,7 +30,7 @@ function print_usage() {
 	log("    Default:", defaults['templates-dir'] + '/');
 	log();
 	log("Options:");
-	log("    -w, --wysia-subdir: Subdirectory where JSON models are stored.");
+	log("    -w, --wysia-subdir: Subdirectory where JSON data files are stored.");
 	log("        Default: none (models loaded from templates-dir)");
 	log("    -p, --public-subdir: Subdirectory where static assets (images, scripts, stylesheets, etc.) are stored.");
 	log("        Default: none (assets served from templates-dir)");
