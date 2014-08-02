@@ -1,6 +1,6 @@
 {
   "name": "wysia",
-  "version": "0.0.0",
+  "version": "0.0.1beta",
   "homepage": "https://github.com/n2liquid/wysia",
   "author": "Guilherme Vieira <super.driver.512@gmail.com>",
   "description": "What you see is awesome: HTML template + mock data viewer.",
