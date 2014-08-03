@@ -36,6 +36,7 @@ function print_usage() {
 	log("        Default: none (assets served from templates-dir)");
 	log("    --port: Listening port to serve from.");
 	log("        Default:", defaults.port, "(or process.env.PORT, if set.)");
+	log("    --version: Ignores everything else and prints program version.");
 	log();
 	process.exit(0);
 }
@@ -83,6 +84,9 @@ for(var name in parsed) {
 		case 'port':
 			ensure_not_boolean('--port', value);
 			args.port = value;
+			break;
+		case 'version':
+			args.version = true;
 			break;
 	}
 }

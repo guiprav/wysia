@@ -24,12 +24,17 @@ var http = require('http');
 var express = require('express');
 var app = express();
 var hbs = require('handlebars');
+require('pkginfo')(module, 'version');
 var args = require('../src/arguments');
 var merge = require('../src/merge');
 var state_machine = require('../src/state-machine');
 var templates_dir = path.resolve(args['templates-dir']);
 var wysia_subdir = path.resolve(templates_dir, args['wysia-subdir']);
 var public_subdir = path.resolve(templates_dir, args['public-subdir']);
+if(args.version) {
+	console.log(module.exports.version);
+	process.exit(0);
+}
 function get_index_handler(req, res) {
 	req.params.page = 'index';
 	get_handler(req, res);
