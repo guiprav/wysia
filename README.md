@@ -47,7 +47,6 @@ Usage
 			Default: none (assets served from templates-dir)
 		--port: Listening port to serve from.
 			Default: 3000 (or process.env.PORT, if set.)
-		wysia [templates-dir] [options]
 
 Copying
 ---
