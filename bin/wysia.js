@@ -50,12 +50,16 @@ function get_handler(req, res) {
 			else {
 				data_files = data_files_param.split(',');
 			}
-			if(data_files.indexOf(req.params.page) === -1 && fs.existsSync(req.params.page + '.json')) {
-				data_files.unshift(req.params.page);
-			}
-			if(data_files.indexOf('global') && fs.existsSync('global.json')) {
-				data_files.unshift('global');
-			}
+			(function include_implicit_data_files() {
+				var page_data_file_path = path.resolve(wysia_subdir, req.params.page + '.json');
+				var global_data_file_path = path.resolve(wysia_subdir, 'global.json');
+				if(data_files.indexOf(req.params.page) === -1 && fs.existsSync(page_data_file_path)) {
+					data_files.unshift(req.params.page);
+				}
+				if(data_files.indexOf('global') && fs.existsSync(global_data_file_path)) {
+					data_files.unshift('global');
+				}
+			})();
 			this.data = data_files.map (
 				function(data_file_name) {
 					return JSON.parse (
