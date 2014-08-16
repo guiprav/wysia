@@ -127,6 +127,19 @@ function get_handler(req, res) {
 				data.arguments = args;
 				return new hbs.SafeString(hbs.compile(partial)(data));
 			};
+			helpers.expand = function(array) {
+				[].slice.call(arguments, 1, -1).forEach (
+					function(name, i) {
+						if(this[name] !== undefined && this[name] !== null) {
+							throw new Error (
+								"Cannot expand '" + name + "': Variable already exists in this scope."
+							);
+						}
+						this[name] = array[i];
+					}
+					, this
+				);
+			};
 			Object.keys(helpers).forEach (
 				function(helper_name) {
 					hbs.registerHelper(helper_name, helpers[helper_name]);
