@@ -62,12 +62,21 @@ function get_handler(req, res) {
 			})();
 			this.data = data_files.map (
 				function(data_file_name) {
-					return JSON.parse (
-						fs.readFileSync (
-							path.resolve(wysia_subdir, data_file_name + '.json')
-							, { encoding: 'utf8' }
-						)
-					);
+					var datagen_module_path = path.resolve(wysia_subdir, data_file_name + '.datagen.js');
+					var data_file_path = path.resolve(wysia_subdir, data_file_name + '.json');
+					if(fs.existsSync(datagen_module_path)) {
+						delete require.cache[datagen_module_path];
+						return require(datagen_module_path);
+					}
+					else
+					if(fs.existsSync(data_file_path)) {
+						return JSON.parse(fs.readFileSync(data_file_path, { encoding: 'utf8' }));
+					}
+					else {
+						throw new Error (
+							"Data file / datagen module '" + data_file_name + "' could not be found."
+						);
+					}
 				}
 			);
 			this.merge_data();
