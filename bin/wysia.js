@@ -26,7 +26,6 @@ var app = express();
 var hbs = require('handlebars');
 require('pkginfo')(module, 'version');
 var args = require('../src/arguments');
-var merge = require('../src/merge');
 var state_machine = require('../src/state-machine');
 var templates_dir = path.resolve(args['templates-dir']);
 var wysia_subdir = path.resolve(templates_dir, args['wysia-subdir']);
@@ -41,53 +40,34 @@ function get_index_handler(req, res) {
 }
 function get_handler(req, res) {
 	state_machine ({
-		load_data_files: function() {
-			var data_files_param = req.params.data_files;
-			var data_files;
-			if(!data_files_param || data_files_param.length === 0) {
-				data_files = [];
+		load_data_modules: function() {
+			var data_modules_param = req.params.data_modules;
+			var data_modules;
+			if(!data_modules_param || data_modules_param.length === 0) {
+				data_modules = [];
 			}
 			else {
-				data_files = data_files_param.split(',');
+				data_modules = data_modules_param.split(',');
 			}
 			(function include_implicit_data_files() {
-				var page_data_file_path = path.resolve(wysia_subdir, req.params.page + '.json');
-				var global_data_file_path = path.resolve(wysia_subdir, 'global.json');
-				if(data_files.indexOf(req.params.page) === -1 && fs.existsSync(page_data_file_path)) {
-					data_files.unshift(req.params.page);
+				var page_data_module_path = path.resolve(wysia_subdir, req.params.page + '.data.js');
+				var global_data_module_path = path.resolve(wysia_subdir, 'global.data.js');
+				if(data_modules.indexOf(req.params.page) === -1 && fs.existsSync(page_data_module_path)) {
+					data_modules.unshift(req.params.page);
 				}
-				if(data_files.indexOf('global') && fs.existsSync(global_data_file_path)) {
-					data_files.unshift('global');
+				if(data_modules.indexOf('global') && fs.existsSync(global_data_module_path)) {
+					data_modules.unshift('global');
 				}
 			})();
-			this.data = data_files.map (
-				function(data_file_name) {
-					var datagen_module_path = path.resolve(wysia_subdir, data_file_name + '.datagen.js');
-					var data_file_path = path.resolve(wysia_subdir, data_file_name + '.json');
-					if(fs.existsSync(datagen_module_path)) {
-						delete require.cache[datagen_module_path];
-						return require(datagen_module_path);
-					}
-					else
-					if(fs.existsSync(data_file_path)) {
-						return JSON.parse(fs.readFileSync(data_file_path, { encoding: 'utf8' }));
-					}
-					else {
-						throw new Error (
-							"Data file / datagen module '" + data_file_name + "' could not be found."
-						);
-					}
+			this.data = {};
+			data_modules.forEach (
+				function(data_module_name) {
+					var data_module_path = path.resolve(wysia_subdir, data_module_name + '.data.js');
+					delete require.cache[data_module_path];
+					require(data_module_path)(this.data);
 				}
+				, this
 			);
-			this.merge_data();
-		}
-		, merge_data: function() {
-			if(this.data.length === 0) {
-				this.data = {};
-			}
-			else {
-				this.data = this.data.reduce(merge);
-			}
 			this.load_helpers();
 		}
 		, load_helpers: function() {
@@ -182,9 +162,9 @@ function post_handler(req, res) {
 }
 app.use(express.static(public_subdir));
 app.get('/', get_index_handler);
-app.get('/:page/:data_files', get_handler);
+app.get('/:page/:data_modules', get_handler);
 app.get('/:page', get_handler);
-app.post('/:page/:data_files', post_handler);
+app.post('/:page/:data_modules', post_handler);
 app.post('/:page', post_handler);
 app.listen(args.port);
 console.log("Wysia started on port", args.port + ".");
