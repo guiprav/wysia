@@ -64,7 +64,7 @@ function get_handler(req, res) {
 				function(data_module_name) {
 					var data_module_path = path.resolve(wysia_subdir, data_module_name + '.data.js');
 					delete require.cache[data_module_path];
-					require(data_module_path)(this.data, req);
+					require(data_module_path).call(this.data, req);
 				}
 				, this
 			);
